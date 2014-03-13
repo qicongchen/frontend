@@ -7,7 +7,7 @@ from bottle import route, run, template, view, static_file, request, urlencode
 from saeclient import SAEClient
 import logging
 
-import network_integration
+# import network_integration
 from knowledge_drift import KnowledgeDrift
 import influence_analysis
 import influence_analysis_patent
@@ -230,7 +230,7 @@ def influence_trends_p( uid):
     tmp_idd=int()
     tmp_idd=uid
     return json.dumps(ask_tre_p.ask(tmp_idd))
-    
+
 
 @route('/academic/<uid:int>/influence/miserable')
 def influence_table(uid):
