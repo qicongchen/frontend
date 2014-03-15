@@ -2,12 +2,12 @@
 #encoding: utf8
 
 import sys
+import os
 import os.path
-from bottle import route, run, template, view, static_file, request, urlencode
+from bottle import route, run, template, view, static_file, request, urlencode, redirect
 from saeclient import SAEClient
 import logging
-
-# import network_integration
+import network_integration
 from knowledge_drift import KnowledgeDrift
 import influence_analysis
 import influence_analysis_patent
@@ -16,7 +16,7 @@ import time
 import json
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-client = SAEClient("tcp://127.0.0.1:40113")
+client = SAEClient("tcp://127.0.0.1:40110")
 
 knowledge_drift_clients = {}
 def get_knowledge_drift_client(dataset):
@@ -37,12 +37,62 @@ logging.info("done")
 @route('/')
 def index():
     return template('index')
-
+#begin analysis page 
+#author: Qicong Chen
+input_path='/home/qicong/saedemo/analysis_data/files/'
+output_path='/home/qicong/saedemo/analysis_data/results/'
+exe_path="/home/qicong/saedb/build/toolkit/influence/"
 @route('/analysis')
-@view('search')
-def analysis():
-	return template('analysis')
+def index():
+    return template('analysis',files = [f for f in os.listdir(input_path) if not f.startswith('.')], results = [f for f in os.listdir(output_path) if not f.startswith('.')], warning='Only txt format is supported.')
+@route('/analysis/upload', method='POST')
+def upload():
+    upload     = request.files.get('data')
+    if upload:
+	    name, ext = os.path.splitext(upload.filename)
+	    if ext not in ('.txt'):
+		return redirect("/analysis")
+	    print 'start uploading'
+	    
+	    upload.save(input_path) # appends upload.filename automatically
+	    print 'complete uploading'
+	    return redirect("/analysis")
+    else:
+	    return redirect("/analysis")
 
+@route('/launch/<filename>')
+def launch(filename):
+	cmd=exe_path+"influence_test -I "+input_path+filename+" -O "+output_path+"result_"+filename
+	print 'launch analysis'
+	print(cmd)
+	os.system(cmd)
+	print 'end analysis'
+	return redirect('/analysis')
+	#return static_file(filename, root='./files', download=filename)
+
+@route('/remove_in/<filename:path>')
+def remove(filename):
+	cmd="rm "+input_path+filename
+	print cmd
+	os.system(cmd)
+	return redirect('/analysis')
+
+@route('/remove_out/<filename:path>')
+def remove(filename):
+	cmd="rm "+output_path+filename
+	print cmd
+	os.system(cmd)
+	return redirect('/analysis')
+
+@route('/download_in/<filename:path>')
+def download(filename):
+    return static_file(filename, root=input_path, download=filename)
+
+@route('/download_out/<filename:path>')
+def download(filename):
+    return static_file(filename, root=output_path, download=filename)
+    
+#end analysis page
 @route('/academic/search')
 @view('search')
 def search():
@@ -300,6 +350,6 @@ def static(path):
 if len(sys.argv) > 1:
     port = int(sys.argv[1])
 else:
-    port = 8083
+    port = 8082
 
 run(server='auto', host='0.0.0.0', port=port, reloader=True, debug=True)
