@@ -7,7 +7,7 @@ import os.path
 from bottle import route, run, template, view, static_file, request, urlencode, redirect
 from saeclient import SAEClient
 import logging
-import network_integration
+# import network_integration
 from knowledge_drift import KnowledgeDrift
 import influence_analysis
 import influence_analysis_patent
@@ -37,31 +37,37 @@ logging.info("done")
 @route('/')
 def index():
     return template('index')
-#begin analysis page 
+#begin analysis page
 #author: Qicong Chen
+
 input_path='/home/qicong/saedemo/analysis_data/files/'
 output_path='/home/qicong/saedemo/analysis_data/results/'
 exe_path="/home/qicong/saedb/build/toolkit/influence/"
 @route('/analysis/<arg>')
 def index(arg):
+    msg = ''
+
     if arg=='index':
-	return template('analysis',warning='',files = [f for f in os.listdir(input_path) if not f.startswith('.')], results = [f for f in os.listdir(output_path) if not f.startswith('.')])
+        pass
     if arg=='ext_error':
-	return template('analysis',warning='Extension is not supported.',files = [f for f in os.listdir(input_path) if not f.startswith('.')], results = [f for f in os.listdir(output_path) if not f.startswith('.')])
+        msg='Extension is not supported.'
     if arg=='empty_file':
-	return template('analysis',warning='Please specify a file to upload.',files = [f for f in os.listdir(input_path) if not f.startswith('.')], results = [f for f in os.listdir(output_path) if not f.startswith('.')])
+        msg='Please specify a file to upload.'
     if arg=='succeed':
-	return template('analysis',warning='Complete uploading.',files = [f for f in os.listdir(input_path) if not f.startswith('.')], results = [f for f in os.listdir(output_path) if not f.startswith('.')])
+        msg='Complete uploading.'
+
+    return template('analysis',warning=msg,files = [f for f in os.listdir(input_path) if not f.startswith('.')], results = [f for f in os.listdir(output_path) if not f.startswith('.')])
 
 @route('/analysis/upload', method='POST')
 def upload():
-    upload     = request.files.get('data')
+    upload  = request.files.get('data')
     if upload:
+
 	    name, ext = os.path.splitext(upload.filename)
 	    if ext not in ('.txt'):
 		return redirect("/analysis/ext_error")
 	    print 'start uploading'
-	    
+
 	    upload.save(input_path) # appends upload.filename automatically
 	    print 'complete uploading'
 	    return redirect("/analysis/succeed")
@@ -99,7 +105,7 @@ def download(filename):
 @route('/download_out/<filename:path>')
 def download(filename):
     return static_file(filename, root=output_path, download=filename)
-    
+
 #end analysis page
 @route('/academic/search')
 @view('search')
