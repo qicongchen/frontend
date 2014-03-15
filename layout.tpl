@@ -22,7 +22,7 @@
                 <li> <a href="/academic/search">Academic</a> </li>
                 <li> <a href="/patent/search">Patent</a> </li>
                 <li> <a href="/weibo/search">Weibo</a> </li>
-		<li> <a href="/analysis">Analysis</a> </li>
+		<li> <a href="/analysis/index">Analysis</a> </li>
             </ul>
         </div>
     </div>
