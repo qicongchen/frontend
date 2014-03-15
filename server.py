@@ -40,33 +40,39 @@ def index():
 #begin analysis page
 #author: Qicong Chen
 
-input_path='/home/starry/Work/try'
-output_path='/home/starry/Work/try'
-exe_path="/home/starry/Work/try"
+input_path='/home/qicong/saedemo/analysis_data/files/'
+output_path='/home/qicong/saedemo/analysis_data/results/'
+exe_path="/home/qicong/saedb/build/toolkit/influence/"
+@route('/analysis/<arg>')
+def index(arg):
+    msg = ''
 
-@route('/analysis')
-def index():
-    q = request.query.q or ''
-    return template('analysis',files = [f for f in os.listdir(input_path) if not f.startswith('.')], results = [f for f in os.listdir(output_path) if not f.startswith('.')], warning=q)
+    if arg=='index':
+        pass
+    if arg=='ext_error':
+        msg='Extension is not supported.'
+    if arg=='empty_file':
+        msg='Please specify a file to upload.'
+    if arg=='succeed':
+        msg='Complete uploading.'
 
+    return template('analysis',warning=msg,files = [f for f in os.listdir(input_path) if not f.startswith('.')], results = [f for f in os.listdir(output_path) if not f.startswith('.')])
 
 @route('/analysis/upload', method='POST')
 def upload():
     upload  = request.files.get('data')
     if upload:
-        print '123'
-        (name, ext) = os.path.splitext(upload.filename)
-        print os.path.splitext(upload.filename)
-        if ext.encode() not in ['.txt']:
-            warning = 'OOPS,ONLY TXT IS ALLOWED!'
-            return redirect("/analysis?q="+warning)
+
+	    name, ext = os.path.splitext(upload.filename)
+	    if ext not in ('.txt'):
+		return redirect("/analysis/ext_error")
 	    print 'start uploading'
 
 	    upload.save(input_path) # appends upload.filename automatically
 	    print 'complete uploading'
-	    return redirect("/analysis")
+	    return redirect("/analysis/succeed")
     else:
-	    return redirect("/analysis")
+	    return redirect("/analysis/empty_file")
 
 @route('/launch/<filename>')
 def launch(filename):
@@ -75,7 +81,7 @@ def launch(filename):
 	print(cmd)
 	os.system(cmd)
 	print 'end analysis'
-	return redirect('/analysis')
+	return redirect('/analysis/index')
 	#return static_file(filename, root='./files', download=filename)
 
 @route('/remove_in/<filename:path>')
@@ -83,14 +89,14 @@ def remove(filename):
 	cmd="rm "+input_path+filename
 	print cmd
 	os.system(cmd)
-	return redirect('/analysis')
+	return redirect('/analysis/index')
 
 @route('/remove_out/<filename:path>')
 def remove(filename):
 	cmd="rm "+output_path+filename
 	print cmd
 	os.system(cmd)
-	return redirect('/analysis')
+	return redirect('/analysis/index')
 
 @route('/download_in/<filename:path>')
 def download(filename):
