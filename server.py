@@ -7,7 +7,7 @@ import os.path
 from bottle import route, run, template, view, static_file, request, urlencode, redirect
 from saeclient import SAEClient
 import logging
-import network_integration
+# import network_integration
 from knowledge_drift import KnowledgeDrift
 import influence_analysis
 import influence_analysis_patent
@@ -37,23 +37,31 @@ logging.info("done")
 @route('/')
 def index():
     return template('index')
-#begin analysis page 
+#begin analysis page
 #author: Qicong Chen
-input_path='/home/qicong/saedemo/analysis_data/files/'
-output_path='/home/qicong/saedemo/analysis_data/results/'
-exe_path="/home/qicong/saedb/build/toolkit/influence/"
+
+input_path='/home/starry/Work/try'
+output_path='/home/starry/Work/try'
+exe_path="/home/starry/Work/try"
+
 @route('/analysis')
 def index():
-    return template('analysis',files = [f for f in os.listdir(input_path) if not f.startswith('.')], results = [f for f in os.listdir(output_path) if not f.startswith('.')], warning='Only txt format is supported.')
+    q = request.query.q or ''
+    return template('analysis',files = [f for f in os.listdir(input_path) if not f.startswith('.')], results = [f for f in os.listdir(output_path) if not f.startswith('.')], warning=q)
+
+
 @route('/analysis/upload', method='POST')
 def upload():
-    upload     = request.files.get('data')
+    upload  = request.files.get('data')
     if upload:
-	    name, ext = os.path.splitext(upload.filename)
-	    if ext not in ('.txt'):
-		return redirect("/analysis")
+        print '123'
+        (name, ext) = os.path.splitext(upload.filename)
+        print os.path.splitext(upload.filename)
+        if ext.encode() not in ['.txt']:
+            warning = 'OOPS,ONLY TXT IS ALLOWED!'
+            return redirect("/analysis?q="+warning)
 	    print 'start uploading'
-	    
+
 	    upload.save(input_path) # appends upload.filename automatically
 	    print 'complete uploading'
 	    return redirect("/analysis")
@@ -91,7 +99,7 @@ def download(filename):
 @route('/download_out/<filename:path>')
 def download(filename):
     return static_file(filename, root=output_path, download=filename)
-    
+
 #end analysis page
 @route('/academic/search')
 @view('search')
